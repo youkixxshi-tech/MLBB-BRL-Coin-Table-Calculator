@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Justin Kyle - MLBB BRL Coin Table Calculator</title>
+  <style>
+    :root {
+      --primary: #1d63ed;
+      --bg: #f4f7fb;
+      --card: #ffffff;
+      --text: #1f2937;
+    }
+    body.theme-blue { --primary: #1d63ed; }
+    body.theme-sakura { --primary: #db2777; }
+    body.theme-mint { --primary: #059669; }
+    body.theme-peach { --primary: #f43f5e; }
+
+    body {
+      font-family: sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 16px;
+    }
+    .container {
+      max-width: 760px;
+      margin: 0 auto;
+    }
+    .banner {
+      background: var(--primary);
+      color: #fff;
+      padding: 14px 16px;
+      border-radius: 8px;
+      font-weight: bold;
+      text-align: center;
+      margin-bottom: 12px;
+      font-size: 17px;
+    }
+    .themes {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .themes button {
+      flex: 1;
+      min-width: 80px;
+      padding: 8px;
+      border: none;
+      border-radius: 6px;
+      color: #fff;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .btn-blue { background: #1d63ed; }
+    .btn-sakura { background: #db2777; }
+    .btn-mint { background: #059669; }
+    .btn-peach { background: #f43f5e; }
+
+    .box {
+      background: var(--card);
+      padding: 14px;
+      border-radius: 8px;
+      margin-bottom: 14px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    }
+    label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 6px;
+    }
+    input, select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      font-size: 16px;
+      box-sizing: border-box;
+    }
+    .hint {
+      font-size: 13px;
+      color: #64748b;
+      margin-top: 6px;
+    }
+    .table-wrap {
+      overflow-x: auto;
+      background: var(--card);
+      border-radius: 8px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    th, td {
+      border: 1px solid #e2e8f0;
+      padding: 8px 6px;
+      text-align: center;
+    }
+    th {
+      background: var(--primary);
+      color: #fff;
+    }
+  </style>
+</head>
+<body class="theme-blue">
+  <div class="container">
+    <div class="banner">Justin Kyle - Digital Store မှဝန်ဆောင်မှုပေးသည်</div>
+
+    <div class="themes">
+      <button class="btn-blue" onclick="setTheme('theme-blue')">Blue</button>
+      <button class="btn-sakura" onclick="setTheme('theme-sakura')">Sakura</button>
+      <button class="btn-mint" onclick="setTheme('theme-mint')">Mint</button>
+      <button class="btn-peach" onclick="setTheme('theme-peach')">Peach</button>
+    </div>
+
+    <div class="box">
+      <label for="rateInput">ကိုယ်ဝယ်ခဲ့တဲ့ Smile code ဈေး ထည့်ပါ:</label>
+      <input type="number" id="rateInput" step="any" placeholder="ဥပမာ - 7.5" oninput="renderTable()" />
+    </div>
+
+    <div class="box">
+      <label for="profitSelect">အမြတ် % ရွေးပါ:</label>
+      <select id="profitSelect" onchange="toggleCustomProfit()">
+        <option value="0">0%</option>
+        <option value="5">5%</option>
+        <option value="10">10%</option>
+        <option value="15">15%</option>
+        <option value="20">20%</option>
+        <option value="custom">Custom % (ကိုယ်တိုင်ရိုက်ထည့်ရန်)</option>
+      </select>
+      <div id="customProfitBox" style="display: none; margin-top: 10px;">
+        <input type="number" id="customProfitInput" step="any" placeholder="အမြတ် % ရိုက်ထည့်ပါ (ဥပမာ - 12.5)" oninput="renderTable()" />
+      </div>
+      <div class="hint">Preset % ရွေးနိုင်သလို Custom % ရွေးပြီး ကိုယ်ကြိုက်တဲ့ % လည်း ထည့်တွက်နိုင်ပါတယ်။</div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>No.</th>
+            <th>Dia Plan</th>
+            <th>Org Dia Plan</th>
+            <th>Coin Price</th>
+            <th>MMK Result</th>
+            <th>အမြတ်</th>
+            <th>Total MMK</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    const plans = [
+      { no: 1, dia: "wp", org: "", coin: 88.5 },
+      { no: 2, dia: "86", org: "", coin: 71.3 },
+      { no: 3, dia: "172", org: "", coin: 141.5 },
+      { no: 4, dia: "257", org: "", coin: 206.8 },
+      { no: 5, dia: "343", org: "", coin: 278.1 },
+      { no: 6, dia: "344", org: "", coin: 283.0 },
+      { no: 7, dia: "429", org: "", coin: 348.3 },
+      { no: 8, dia: "430", org: "", coin: 354.3 },
+      { no: 9, dia: "514", org: "", coin: 413.6 },
+      { no: 10, dia: "600", org: "", coin: 484.9 },
+      { no: 11, dia: "706", org: "", coin: 558.0 },
+      { no: 12, dia: "792", org: "", coin: 629.3 },
+      { no: 13, dia: "878", org: "", coin: 699.5 },
+      { no: 14, dia: "963", org: "", coin: 764.8 },
+      { no: 15, dia: "1049", org: "", coin: 836.1 },
+      { no: 16, dia: "1050", org: "", coin: 841.0 },
+      { no: 17, dia: "1135", org: "", coin: 906.3 },
+      { no: 18, dia: "1220", org: "", coin: 971.6 },
+      { no: 19, dia: "1222", org: "", coin: 982.5 },
+      { no: 20, dia: "1412", org: "", coin: 1116.0 },
+      { no: 21, dia: "1584", org: "", coin: 1257.5 },
+      { no: 22, dia: "1669", org: "", coin: 1322.8 },
+      { no: 23, dia: "1755", org: "", coin: 1394.1 },
+      { no: 24, dia: "1841", org: "", coin: 1464.3 }
+    ];
+
+    function setTheme(themeClass) {
+      document.body.className = themeClass;
+    }
+
+    function toggleCustomProfit() {
+      const selectVal = document.getElementById("profitSelect").value;
+      const customBox = document.getElementById("customProfitBox");
+      customBox.style.display = selectVal === "custom" ? "block" : "none";
+      renderTable();
+    }
+
+    function getProfitPercent() {
+      const selectVal = document.getElementById("profitSelect").value;
+      if (selectVal === "custom") {
+        const customVal = parseFloat(document.getElementById("customProfitInput").value);
+        return Number.isFinite(customVal) ? customVal : 0;
+      }
+      return parseFloat(selectVal) || 0;
+    }
+
+    function fmt(num) {
+      return Number.isFinite(num) ? Math.round(num).toLocaleString() : "-";
+    }
+
+    function renderTable() {
+      const rate = parseFloat(document.getElementById("rateInput").value);
+      const profitPct = getProfitPercent();
+      const tbody = document.getElementById("tableBody");
+      tbody.innerHTML = "";
+
+      plans.forEach((p) => {
+        let mmkResult = "";
+        let profitAmt = "";
+        let totalMmk = "";
+
+        if (!isNaN(rate) && rate > 0) {
+          const base = p.coin * rate;
+          const profit = base * (profitPct / 100);
+          const total = base + profit;
+
+          mmkResult = fmt(base);
+          profitAmt = fmt(profit);
+          totalMmk = fmt(total);
+        }
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${p.no}</td>
+          <td>${p.dia}</td>
+          <td>${p.org}</td>
+          <td>${p.coin}</td>
+          <td>${mmkResult}</td>
+          <td>${profitAmt}</td>
+          <td>${totalMmk}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    renderTable();
+  </script>
+</body>
+</html>
